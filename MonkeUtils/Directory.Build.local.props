@@ -1,0 +1,6 @@
+<!-- Directory.Build.local.props -->
+<Project>
+    <PropertyGroup>
+        <GorillaTagDir>/mnt/wdblue/SteamLibrary/steamapps/common/Gorilla Tag</GorillaTagDir>
+    </PropertyGroup>
+</Project>

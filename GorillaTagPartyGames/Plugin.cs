@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using BepInEx;
-using GorillaTagPartyGames.GameModes;
+using GorillaTagPartyGames.GameModes.TeamTag;
 using HarmonyLib;
 using Utilla.Attributes;
 
@@ -13,7 +13,7 @@ public class Plugin : BaseUnityPlugin
 {
     public Plugin()
     {
-        Harmony harmony = new Harmony(PluginInfo.Guid);
+        var harmony = new Harmony(PluginInfo.Guid);
         harmony.PatchAll(Assembly.GetExecutingAssembly());
     }
 }
@@ -27,7 +27,7 @@ public static class PluginInfo
 
 public static class GameModeInfo
 {
-    public const string TeamTagGuid = "xyz.pl2w.gtag.partygames.teamtag";
-    public const string TeamTagName = "TEAM TAG";
+    public const string TeamTagGuid = "xyz.pl2w.gtag.partygames.teaminfection";
+    public const string TeamTagName = "TEAM INFECTION";
     public const int TeamTagId = 4821;
 }
