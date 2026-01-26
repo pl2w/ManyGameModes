@@ -77,7 +77,7 @@ public class TeamInfection : GorillaGameManager
             .OrderBy(_ => Random.value)
             .ToList();
 
-        for (int i = 0; i < shuffledPlayers.Count; i++)
+        for (var i = 0; i < shuffledPlayers.Count; i++)
         {
             var team = i switch
             {
@@ -98,25 +98,25 @@ public class TeamInfection : GorillaGameManager
     {
         if (!NetworkSystem.Instance.IsMasterClient || _isRestarting) return;
 
-        int totalPlayers = currentNetPlayerArray.Length;
+        var totalPlayers = currentNetPlayerArray.Length;
 
-        int red = GetTeamCount(Team.Red);
-        int blue = GetTeamCount(Team.Blue);
-        int teamless = GetTeamCount(Team.Teamless);
+        var red = GetTeamCount(Team.Red);
+        var blue = GetTeamCount(Team.Blue);
+        var teamless = GetTeamCount(Team.Teamless);
 
         Plugin.Log.LogInfo($"Team counts — Red:{red} Blue:{blue} Teamless:{teamless}");
 
-        if (red == totalPlayers || blue == totalPlayers || teamless == totalPlayers)
+        if (red != totalPlayers && blue != totalPlayers && teamless != totalPlayers) 
+            return;
+        
+        Plugin.Log.LogInfo("Win condition met, scheduling restart");
+
+        _isRestarting = true;
+        _restartTimer = 0f;
+
+        foreach (NetPlayer player in GorillaGameModes.GameMode.ParticipatingPlayers)
         {
-            Plugin.Log.LogInfo("Win condition met, scheduling restart");
-
-            _isRestarting = true;
-            _restartTimer = 0f;
-
-            foreach (NetPlayer player in GorillaGameModes.GameMode.ParticipatingPlayers)
-            {
-                RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, player, true);
-            }
+            RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, player, true);
         }
     }
 
@@ -149,8 +149,10 @@ public class TeamInfection : GorillaGameManager
             $"Actor {taggingPlayer.ActorNumber} tagged {taggedPlayer.ActorNumber} (Team {taggingTeam})");
 
         RoomSystemWrapper.SendStatusEffectToPlayer(StatusEffects.TaggedTime, taggedPlayer);
-        SetPlayerTeam(taggedPlayer, taggingTeam);
+        RoomSystemWrapper.SendSoundEffectOnOther(0, 0.25f, taggedPlayer, true);
 
+        SetPlayerTeam(taggedPlayer, taggingTeam);
+        
         CheckGameStatus();
     }
 

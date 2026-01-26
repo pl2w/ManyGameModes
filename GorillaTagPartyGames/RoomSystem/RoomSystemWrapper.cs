@@ -77,7 +77,7 @@ public static class RoomSystemWrapper
         NetPlayer targetPlayer,
         bool stopCurrentAudio = false)
     {
-        SendSoundEffectToPlayerMethod.Invoke(
+        SendSoundEffectOnOtherMethod.Invoke(
             null,
             [soundIndex, soundVolume, targetPlayer, stopCurrentAudio]
         );
