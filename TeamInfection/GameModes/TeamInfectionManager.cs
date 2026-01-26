@@ -234,13 +234,13 @@ public class TeamInfectionManager : GorillaGameManager
     {
         if (NetworkSystem.Instance.IsMasterClient) return;
 
-        int size = (int)stream.ReceiveNext();
+        var size = (int)stream.ReceiveNext();
         _playerTeams.Clear();
 
         for (int i = 0; i < size; i++)
         {
-            int actor = (int)stream.ReceiveNext();
-            Team team = (Team)(byte)stream.ReceiveNext();
+            var actor = (int)stream.ReceiveNext();
+            var team = (Team)(byte)stream.ReceiveNext();
             _playerTeams[actor] = team;
         }
 
