@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using GorillaGameModes;
-using GorillaNetworking;
 using HotPotato.RoomSystem;
 using Photon.Pun;
 using UnityEngine;
@@ -22,6 +20,10 @@ public class HotPotatoManager : GorillaGameManager
     private float _potatoTimeDecrease = 0.5f;
     private float _potatoTimer = 30f;
 
+    private bool _isRestarting;
+    private float _restartTimer;
+
+    private const float RestartDelay = 5f;
     private const float SlowDownCoolDown = 5f;
     
     public override GameModeType GameType() => (GameModeType)GameModeInfo.HotPotatoId;
@@ -58,11 +60,15 @@ public class HotPotatoManager : GorillaGameManager
     {
         _eliminatedPlayers.Clear();
         _slowDownCooldowns.Clear();
-        
+
         _maxPotatoTime = 30f;
         _minPotatoTime = 10f;
         _potatoTimeDecrease = 0.5f;
+
+        _isRestarting = false;
+        _restartTimer = 0f;
     }
+
 
     public override void ResetGame()
     {
@@ -81,37 +87,58 @@ public class HotPotatoManager : GorillaGameManager
     void RestartRound()
     {
         if (!NetworkSystem.Instance.IsMasterClient)
-        {
-            Plugin.Log.LogInfo("Not master client, skipping HotPotato RestartRound logic");
             return;
-        }
-        
+
         var alivePlayers = currentNetPlayerArray
             .Where(p => p != null && !_eliminatedPlayers.Contains(p.ActorNumber))
             .ToList();
 
         if (alivePlayers.Count <= 1)
         {
-            ResetGame();
+            Plugin.Log.LogInfo("Win condition met, scheduling restart");
+
+            _isRestarting = true;
+            _restartTimer = 0f;
+
+            foreach (var player in GorillaGameModes.GameMode.ParticipatingPlayers)
+            {
+                RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, player, true);
+            }
+
             return;
         }
-        
+
         _currentPotatoHolder = alivePlayers[Random.Range(0, alivePlayers.Count)].ActorNumber;
 
         _potatoTimer = _maxPotatoTime;
         _maxPotatoTime = Mathf.Max(_minPotatoTime, _maxPotatoTime - _potatoTimeDecrease);
 
-        Plugin.Log.LogInfo($"New round: Potato held by Actor {_currentPotatoHolder}, " +
-                           $"Timer: {_potatoTimer}, Next max: {_maxPotatoTime}");
+        Plugin.Log.LogInfo(
+            $"New round: Potato held by Actor {_currentPotatoHolder}, Timer: {_potatoTimer}");
     }
+
 
     public override void Tick()
     {
         base.Tick();
-        
+
         if (!NetworkSystem.Instance.IsMasterClient)
             return;
-        
+
+        if (_isRestarting)
+        {
+            _restartTimer += Time.deltaTime;
+
+            if (_restartTimer >= RestartDelay)
+            {
+                Plugin.Log.LogInfo("Restart delay elapsed, restarting round");
+                _isRestarting = false;
+                RestartRound();
+            }
+
+            return;
+        }
+
         _potatoTimer -= Time.deltaTime;
 
         if (_potatoTimer <= 0f)
