@@ -12,13 +12,27 @@ public class TeamInfectionManager : GorillaGameManager
     private GameState _gameState = GameState.WaitingForPlayers;
     private float _stateStartTime = 0f;
 
-    private Dictionary<int, Team> _playerTeams = new();
+    private readonly Dictionary<int, Team> _playerTeams = new();
     
     private const float CountdownTime = 5f;
     
     public override GameModeType GameType() => (GameModeType)GameModeInfo.TeamInfectionId;
     public override string GameModeName() => GameModeInfo.TeamInfectionGuid;
     public override string GameModeNameRoomLabel() => string.Empty;
+
+    public override void StartPlaying()
+    {
+        base.StartPlaying();
+
+        slowJumpLimit = 6.5f;
+        slowJumpMultiplier = 1.1f;
+        fastJumpLimit = 8.5f;
+        fastJumpMultiplier = 1.3f;
+        
+        _playerTeams.Clear();
+        _gameState = GameState.WaitingForPlayers;
+        _stateStartTime = 0f;
+    }
 
     public override void Tick()
     {
@@ -47,6 +61,15 @@ public class TeamInfectionManager : GorillaGameManager
                 SetState(GameState.StartingRound);
                 break;
         }
+    }
+
+    public override void StopPlaying()
+    {
+        base.StopPlaying();
+        
+        _gameState = GameState.WaitingForPlayers;
+        _stateStartTime = 0f;
+        _playerTeams.Clear();   
     }
 
     private void CheckWinCondition()
@@ -158,6 +181,20 @@ public class TeamInfectionManager : GorillaGameManager
         
         _playerTeams[taggedPlayer.ActorNumber] = _playerTeams[taggingPlayer.ActorNumber];
         CheckWinCondition();
+    }
+
+    public override float[] LocalPlayerSpeed()
+    {
+        if (_playerTeams[NetworkSystem.Instance.LocalPlayer.ActorNumber] != Team.Teamless)
+        {
+            playerSpeed[0] = fastJumpLimit;
+            playerSpeed[1] = fastJumpMultiplier;
+            return playerSpeed;
+        }
+        
+        playerSpeed[0] = slowJumpLimit;
+        playerSpeed[1] = slowJumpMultiplier;
+        return playerSpeed;
     }
 
     public override void AddFusionDataBehaviour(NetworkObject behaviour) { }
