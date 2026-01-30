@@ -3,6 +3,7 @@ using System.Linq;
 using Fusion;
 using GorillaGameModes;
 using Photon.Pun;
+using TeamInfection.RoomSystem;
 using UnityEngine;
 
 namespace TeamInfection.GameModes;
@@ -10,7 +11,7 @@ namespace TeamInfection.GameModes;
 public class TeamInfectionManager : GorillaGameManager
 {
     private GameState _gameState = GameState.WaitingForPlayers;
-    private float _stateStartTime = 0f;
+    private float _stateStartTime;
 
     private readonly Dictionary<int, Team> _playerTeams = new();
     
@@ -33,7 +34,7 @@ public class TeamInfectionManager : GorillaGameManager
         _gameState = GameState.WaitingForPlayers;
         _stateStartTime = 0f;
     }
-
+    
     public override void Tick()
     {
         base.Tick();
@@ -44,7 +45,7 @@ public class TeamInfectionManager : GorillaGameManager
         switch (_gameState)
         {
             case GameState.WaitingForPlayers:
-                if (currentNetPlayerArray.Length >= 2)
+                if (EnoughPlayersToStart())
                     SetState(GameState.StartingRound);
                 break;
             case GameState.StartingRound:
@@ -72,6 +73,11 @@ public class TeamInfectionManager : GorillaGameManager
         _playerTeams.Clear();   
     }
 
+    private bool EnoughPlayersToStart()
+    {
+        return currentNetPlayerArray.Length >= 2;
+    }
+
     private void CheckWinCondition()
     {
         if (currentNetPlayerArray.Length < 2)
@@ -87,6 +93,9 @@ public class TeamInfectionManager : GorillaGameManager
 
     private void EndRound()
     {
+        foreach (NetPlayer participatingPlayer in GorillaGameModes.GameMode.ParticipatingPlayers)
+            RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, participatingPlayer, true);
+        
         SetState(GameState.RoundComplete);
     }
     
@@ -94,6 +103,14 @@ public class TeamInfectionManager : GorillaGameManager
     {
         _stateStartTime = Time.time;
         _gameState = state;
+
+        switch (state)
+        {
+            case GameState.WaitingForPlayers:
+                _playerTeams.Clear();
+                _stateStartTime = 0f;
+                break;
+        }
     }
 
     private void AssignTeams()
@@ -140,6 +157,12 @@ public class TeamInfectionManager : GorillaGameManager
         
         _playerTeams.Remove(leavingPlayer.ActorNumber);
 
+        if (!EnoughPlayersToStart())
+        {
+            SetState(GameState.WaitingForPlayers);
+            return;
+        }
+        
         if (_gameState == GameState.PlayingRound)
             CheckWinCondition();
     }
@@ -183,6 +206,9 @@ public class TeamInfectionManager : GorillaGameManager
             return;
         
         _playerTeams[taggedPlayer.ActorNumber] = taggerTeam;
+        RoomSystemWrapper.SendStatusEffectToPlayer(StatusEffects.TaggedTime, taggedPlayer);
+        RoomSystemWrapper.SendSoundEffectOnOther(0, 0.25f, taggedPlayer);
+        
         CheckWinCondition();
     }
 
