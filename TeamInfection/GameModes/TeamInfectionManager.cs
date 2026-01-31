@@ -172,11 +172,11 @@ public class TeamInfectionManager : GorillaGameManager
         Team team = _playerTeams.GetValueOrDefault(forPlayer.ActorNumber, Team.Teamless);
         int matIndex = team switch
         {
-            Team.Red => 1,
-            Team.Blue => 2,
+            Team.Red => 8,
+            Team.Blue => 4,
             _ => 0
         };
-
+        
         return matIndex;
     }
 
