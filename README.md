@@ -16,9 +16,9 @@ Failing to pass the potato eliminates the player and allows them to slow down re
 
 ***insert gameplay mp4 here...***
 
-### Golden Banana
-A Golden Banana spawns in a random spot. Be the first player to hold it for 15 seconds total to win.   
-You can grab the golden banana by tagging the current holder.
+### Golden Monkey
+A random person becomes the golden monkey. Be the first player to be the golden monkey for 15 seconds total to win.   
+You can become the golden monkey by tagging the current one.
 
 ***insert gameplay mp4 here...***
 
