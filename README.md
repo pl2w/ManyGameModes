@@ -12,6 +12,8 @@ The first team to turn the entire lobby to their side wins.
 1-3 players start with a hot potato (depends on how many people are in the room).   
 You must pass the hot potato to another player in order to avoid being blown up after 30 seconds.
 
+![hotpotato](https://github.com/pl2w/MonkeGameModes/blob/master/.assets/Hotpotato.gif?raw=true)
+
 ## Dependencies
 | Library    | Version Requirement |
 |------------|---------------------|
