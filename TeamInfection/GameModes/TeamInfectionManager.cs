@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using GorillaGameModes;
-using MonkeLib.Helpers;
 using Photon.Pun;
 using UnityEngine;
-using MonkeLib.Wrappers;
 
 namespace TeamInfection.GameModes;
 
@@ -17,10 +15,10 @@ public class TeamInfectionManager : GorillaGameManager
     private readonly Dictionary<int, Team> _playerTeams = new();
     
     private const float CountdownTime = 5f;
-    
-    public GameModeMaterials redTeamMaterial = GameModeMaterials.PaintBrawlRedTeam;
-    public GameModeMaterials blueTeamMaterial =  GameModeMaterials.PaintBrawlBlueTeam;
-    public GameModeMaterials defaultMaterial =  GameModeMaterials.Default;
+
+    public int redTeamMaterial = 8;
+    public int blueTeamMaterial = 4;
+    public int defaultMaterial = 0;
     
     public override GameModeType GameType() => (GameModeType)GameModeInfo.Id;
     public override string GameModeName() => GameModeInfo.Guid;
@@ -99,7 +97,7 @@ public class TeamInfectionManager : GorillaGameManager
     private void EndRound()
     {
         foreach (NetPlayer participatingPlayer in GorillaGameModes.GameMode.ParticipatingPlayers)
-            RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, participatingPlayer, true);
+            RoomSystem.SendSoundEffectToPlayer(2, 0.25f, participatingPlayer, true);
         
         SetState(GameState.RoundComplete);
     }
@@ -211,8 +209,8 @@ public class TeamInfectionManager : GorillaGameManager
             return;
         
         _playerTeams[taggedPlayer.ActorNumber] = taggerTeam;
-        RoomSystemWrapper.SendStatusEffectToPlayer(StatusEffects.TaggedTime, taggedPlayer);
-        RoomSystemWrapper.SendSoundEffectOnOther(0, 0.25f, taggedPlayer);
+        RoomSystem.SendStatusEffectToPlayer(RoomSystem.StatusEffects.TaggedTime, taggedPlayer);
+        RoomSystem.SendSoundEffectOnOther(0, 0.25f, taggedPlayer);
         
         CheckWinCondition();
     }

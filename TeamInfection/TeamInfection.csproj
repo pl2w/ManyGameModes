@@ -5,7 +5,14 @@
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(CI)'=='TRUE'">
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" />
+        <PackageReference Publicize="true" Include="gorillatag" Version="1.0.*"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(CI)'!='TRUE'">
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
+        
         <Reference Include="0Harmony">
             <HintPath>$(GorillaTagDir)/BepInEx/core/0Harmony.dll</HintPath>
             <Private>false</Private>
@@ -85,7 +92,7 @@
             <Private>false</Private>
         </Reference>
 
-        <Reference Include="Assembly-CSharp">
+        <Reference Include="Assembly-CSharp" Publicize="true">
             <HintPath>$(GorillaTagDir)/Gorilla Tag_Data/Managed/Assembly-CSharp.dll</HintPath>
             <Private>false</Private>
         </Reference>
@@ -147,11 +154,6 @@
 
         <Reference Include="Utilla">
             <HintPath>$(GorillaTagDir)/BepInEx/plugins/Utilla/Utilla.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-
-        <Reference Include="MonkeLib">
-            <HintPath>$(GorillaTagDir)/BepInEx/plugins/MonkeLib/MonkeLib.dll</HintPath>
             <Private>false</Private>
         </Reference>
     </ItemGroup>

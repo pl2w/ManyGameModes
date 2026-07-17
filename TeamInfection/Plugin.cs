@@ -7,7 +7,6 @@ namespace TeamInfection;
 
 [BepInPlugin(PluginInfo.Guid, PluginInfo.Name, PluginInfo.Version)]
 [BepInDependency("org.legoandmars.gorillatag.utilla", "1.6.25")]
-[BepInDependency("xyz.pl2w.monkelib", "0.1.0")]
 [ModdedGamemode(GameModeInfo.Guid, GameModeInfo.Name, typeof(TeamInfectionManager))]
 public class Plugin : BaseUnityPlugin
 {

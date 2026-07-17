@@ -1,10 +1,6 @@
 ﻿using Fusion;
 using GorillaGameModes;
-using MonkeLib.Helpers;
-using MonkeLib.Wrappers;
 using Photon.Pun;
-using Photon.Pun.UtilityScripts;
-using Photon.Realtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,24 +11,24 @@ namespace HotPotato.GameModes;
 
 public class HotPotatoManager : GorillaGameManager
 {
-    public List<int> _currentPotatoHolders = [];
+    public List<int> currentPotatoHolders = [];
 
-    public GameState _gameState = GameState.WaitingForPlayers;
+    public GameState gameState = GameState.WaitingForPlayers;
 
-    public float _stateStartTime;
+    public float stateStartTime;
     private const float CountdownTime = 5f;
     private float _hotPotatoExplodeTime = 30f;
 
     public float tagCoolDown = 3f;
     public double lastTag;
 
-    private bool isPlayingSound;
+    private bool _isPlayingSound;
 
-    public GameModeMaterials burntPotatoMaterial = GameModeMaterials.PaintBrawlNoTeamStunned;
-    public GameModeMaterials hotPotatoMaterial = GameModeMaterials.PaintBrawlNoTeamEliminated;
-    public GameModeMaterials defaultMaterial = GameModeMaterials.Default;
+    public int burntPotatoMaterialIndex = 17;
+    public int hotPotatoMaterialIndex = 16;
+    public int defaultMaterial = 0;
 
-    private Texture paintBrawlNoTeamStunned, paintBrawlNoTeamEliminated;
+    private Texture _paintBrawlNoTeamStunned, _paintBrawlNoTeamEliminated;
 
     public override GameModeType GameType() => (GameModeType)GameModeInfo.Id;
     public override string GameModeName() => GameModeInfo.Guid;
@@ -40,8 +36,8 @@ public class HotPotatoManager : GorillaGameManager
 
     private void Start()
     {
-        paintBrawlNoTeamEliminated = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamEliminated].mainTexture;
-        paintBrawlNoTeamStunned = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamStunned].mainTexture;
+        _paintBrawlNoTeamEliminated = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[hotPotatoMaterialIndex].mainTexture;
+        _paintBrawlNoTeamStunned = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[burntPotatoMaterialIndex].mainTexture;
     }
 
     public override void StartPlaying()
@@ -53,14 +49,14 @@ public class HotPotatoManager : GorillaGameManager
         fastJumpLimit = 8.5f;
         fastJumpMultiplier = 1.3f;
 
-        _currentPotatoHolders.Clear();
-        _gameState = GameState.WaitingForPlayers;
-        _stateStartTime = 0f;
+        currentPotatoHolders.Clear();
+        gameState = GameState.WaitingForPlayers;
+        stateStartTime = 0f;
 
         lastTag = 0.0;
 
-        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamEliminated].mainTexture = Plugin.potatoTexture;
-        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamStunned].mainTexture = Plugin.burntPotatoTexture;
+        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[hotPotatoMaterialIndex].mainTexture = Plugin.PotatoTexture;
+        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[burntPotatoMaterialIndex].mainTexture = Plugin.BurntPotatoTexture;
     }
 
     public override void StopPlaying()
@@ -68,13 +64,13 @@ public class HotPotatoManager : GorillaGameManager
         base.StopPlaying();
 
         _hotPotatoExplodeTime = 30f;
-        _currentPotatoHolders.Clear();
-        _gameState = GameState.WaitingForPlayers;
-        _stateStartTime = 0f;
+        currentPotatoHolders.Clear();
+        gameState = GameState.WaitingForPlayers;
+        stateStartTime = 0f;
         lastTag = 0.0;
 
-        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamEliminated].mainTexture = paintBrawlNoTeamEliminated;
-        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[(int)GameModeMaterials.PaintBrawlNoTeamStunned].mainTexture = paintBrawlNoTeamStunned;
+        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[hotPotatoMaterialIndex].mainTexture = _paintBrawlNoTeamEliminated;
+        GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[burntPotatoMaterialIndex].mainTexture = _paintBrawlNoTeamStunned;
     }
 
     public override void Tick()
@@ -84,14 +80,14 @@ public class HotPotatoManager : GorillaGameManager
         if (!NetworkSystem.Instance.IsMasterClient)
             return;
 
-        switch (_gameState)
+        switch (gameState)
         {
             case GameState.WaitingForPlayers:
                 if (EnoughPlayersToStart())
                     SetState(GameState.StartingRound);
                 break;
             case GameState.StartingRound:
-                if (Time.time - _stateStartTime >= CountdownTime)
+                if (Time.time - stateStartTime >= CountdownTime)
                 {
                     SetState(GameState.PlayingRound);
                 }
@@ -120,9 +116,9 @@ public class HotPotatoManager : GorillaGameManager
             Plugin.Log.LogInfo("Round ended");
         }
 
-        if (_hotPotatoExplodeTime <= 10f && !isPlayingSound)
+        if (_hotPotatoExplodeTime <= 10f && !_isPlayingSound)
         {
-            isPlayingSound = true;
+            _isPlayingSound = true;
             StartCoroutine(TickingSound());
         }
     }
@@ -130,37 +126,37 @@ public class HotPotatoManager : GorillaGameManager
     private void ResetRound()
     {
         _hotPotatoExplodeTime = 30f;
-        _stateStartTime = 0f;
+        stateStartTime = 0f;
         lastTag = 0.0;
-        _currentPotatoHolders.Clear();
+        currentPotatoHolders.Clear();
 
         List<NetPlayer> selected = currentNetPlayerArray.OrderBy(x => UnityEngine.Random.value)
             .Take(GetPotatoCount())
             .ToList();
 
-        selected.ForEach(p => _currentPotatoHolders.Add(p.ActorNumber));
+        selected.ForEach(p => currentPotatoHolders.Add(p.ActorNumber));
         Plugin.Log.LogInfo($"Selected players: {string.Join(", ", selected.Select(p => p.NickName))}");
-        selected.ForEach(p => RoomSystemWrapper.SendSoundEffectToPlayer(0, 0.25f, p));
+        selected.ForEach(p => RoomSystem.SendSoundEffectToPlayer(0, 0.25f, p));
     }
 
     private void EndRound()
     {
-        foreach (NetPlayer participatingPlayer in GorillaGameModes.GameMode.ParticipatingPlayers)
-            RoomSystemWrapper.SendSoundEffectToPlayer(2, 0.25f, participatingPlayer, true);
+        foreach (var participatingPlayer in GorillaGameModes.GameMode.ParticipatingPlayers)
+            RoomSystem.SendSoundEffectToPlayer(2, 0.25f, participatingPlayer, true);
 
         SetState(GameState.RoundComplete);
     }
 
     private void SetState(GameState state)
     {
-        _stateStartTime = Time.time;
-        _gameState = state;
+        stateStartTime = Time.time;
+        gameState = state;
 
         switch (state)
         {
             case GameState.WaitingForPlayers:
-                _currentPotatoHolders.Clear();
-                _stateStartTime = 0f;
+                currentPotatoHolders.Clear();
+                stateStartTime = 0f;
                 break;
             case GameState.PlayingRound:
                 ResetRound();
@@ -170,20 +166,15 @@ public class HotPotatoManager : GorillaGameManager
 
     public override int MyMatIndex(NetPlayer forPlayer)
     {
-        if (_currentPotatoHolders.Contains(forPlayer.ActorNumber))
-        {
-            if (_gameState == GameState.StartingRound)
-                return (int)burntPotatoMaterial;
-
-            return (int)hotPotatoMaterial;
-        }
-
-        return (int)defaultMaterial;
+        if (!currentPotatoHolders.Contains(forPlayer.ActorNumber)) 
+            return defaultMaterial;
+        
+        return gameState == GameState.StartingRound ? burntPotatoMaterialIndex : hotPotatoMaterialIndex;
     }
 
     public override bool LocalCanTag(NetPlayer myPlayer, NetPlayer otherPlayer)
     {
-        if (_currentPotatoHolders.Contains(myPlayer.ActorNumber) && !_currentPotatoHolders.Contains(otherPlayer.ActorNumber))
+        if (currentPotatoHolders.Contains(myPlayer.ActorNumber) && !currentPotatoHolders.Contains(otherPlayer.ActorNumber))
             return true;
 
         return false;
@@ -191,7 +182,7 @@ public class HotPotatoManager : GorillaGameManager
 
     public override void ReportTag(NetPlayer taggedPlayer, NetPlayer taggingPlayer)
     {
-        if (_gameState != GameState.PlayingRound)
+        if (gameState != GameState.PlayingRound)
             return;
 
         if (Time.time < lastTag + tagCoolDown)
@@ -200,13 +191,13 @@ public class HotPotatoManager : GorillaGameManager
         if (!LocalCanTag(taggingPlayer, taggedPlayer))
             return;
 
-        _currentPotatoHolders.Remove(taggingPlayer.ActorNumber);
-        _currentPotatoHolders.Add(taggedPlayer.ActorNumber);
+        currentPotatoHolders.Remove(taggingPlayer.ActorNumber);
+        currentPotatoHolders.Add(taggedPlayer.ActorNumber);
 
         lastTag = Time.time;
 
-        RoomSystemWrapper.SendStatusEffectToPlayer(StatusEffects.TaggedTime, taggedPlayer);
-        RoomSystemWrapper.SendSoundEffectOnOther(0, 0.25f, taggedPlayer);
+        RoomSystem.SendStatusEffectToPlayer(RoomSystem.StatusEffects.TaggedTime, taggedPlayer);
+        RoomSystem.SendSoundEffectOnOther(0, 0.25f, taggedPlayer);
     }
 
     public override void OnPlayerLeftRoom(NetPlayer leavingPlayer)
@@ -216,13 +207,13 @@ public class HotPotatoManager : GorillaGameManager
         if (!NetworkSystem.Instance.IsMasterClient)
             return;
 
-        if (_currentPotatoHolders.Contains(leavingPlayer.ActorNumber))
-            _currentPotatoHolders.Remove(leavingPlayer.ActorNumber);
+        if (currentPotatoHolders.Contains(leavingPlayer.ActorNumber))
+            currentPotatoHolders.Remove(leavingPlayer.ActorNumber);
     }
 
     public override float[] LocalPlayerSpeed()
     {
-        if (_currentPotatoHolders.Contains(NetworkSystem.Instance.LocalPlayer.ActorNumber))
+        if (currentPotatoHolders.Contains(NetworkSystem.Instance.LocalPlayer.ActorNumber))
         {
             playerSpeed[0] = fastJumpLimit;
             playerSpeed[1] = fastJumpMultiplier;
@@ -239,8 +230,8 @@ public class HotPotatoManager : GorillaGameManager
         if (NetworkSystem.Instance.IsMasterClient)
             return;
 
-        _gameState = (GameState)(byte)stream.ReceiveNext();
-        _currentPotatoHolders = ((int[])stream.ReceiveNext()).ToList();
+        gameState = (GameState)(byte)stream.ReceiveNext();
+        currentPotatoHolders = ((int[])stream.ReceiveNext()).ToList();
         _hotPotatoExplodeTime = (float)stream.ReceiveNext();
     }
 
@@ -249,8 +240,8 @@ public class HotPotatoManager : GorillaGameManager
         if (!NetworkSystem.Instance.IsMasterClient)
             return;
 
-        stream.SendNext((byte)_gameState);
-        stream.SendNext(_currentPotatoHolders.ToArray());
+        stream.SendNext((byte)gameState);
+        stream.SendNext(currentPotatoHolders.ToArray());
         stream.SendNext(_hotPotatoExplodeTime);
     }
 
@@ -274,10 +265,10 @@ public class HotPotatoManager : GorillaGameManager
     {
         for (int i = 1; i <= 5; i++)
         {
-            currentNetPlayerArray.ForEach(p => RoomSystemWrapper.SendSoundEffectOnOther(6, 0.25f, p));
+            currentNetPlayerArray.ForEach(p => RoomSystem.SendSoundEffectOnOther(6, 0.25f, p));
             yield return new WaitForSeconds(2f);
         }
-        isPlayingSound = false;
+        _isPlayingSound = false;
     }
 }
 

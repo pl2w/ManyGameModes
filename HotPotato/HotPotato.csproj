@@ -4,18 +4,20 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-      <None Remove="Assets\burntpotato.png" />
-      <None Remove="Assets\potato.png" />
-    </ItemGroup>
-
+    
     <ItemGroup>
       <EmbeddedResource Include="Assets\burntpotato.png" />
       <EmbeddedResource Include="Assets\potato.png" />
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(CI)'=='TRUE'">
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="all" />
+        <PackageReference Publicize="true" Include="gorillatag" Version="1.0.*"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(CI)'!='TRUE'">
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
+        
         <Reference Include="0Harmony">
             <HintPath>$(GorillaTagDir)/BepInEx/core/0Harmony.dll</HintPath>
             <Private>false</Private>
@@ -95,7 +97,7 @@
             <Private>false</Private>
         </Reference>
 
-        <Reference Include="Assembly-CSharp">
+        <Reference Include="Assembly-CSharp" Publicize="true">
             <HintPath>$(GorillaTagDir)/Gorilla Tag_Data/Managed/Assembly-CSharp.dll</HintPath>
             <Private>false</Private>
         </Reference>
@@ -155,13 +157,13 @@
             <Private>false</Private>
         </Reference>
 
-        <Reference Include="Utilla">
-            <HintPath>$(GorillaTagDir)/BepInEx/plugins/Utilla/Utilla.dll</HintPath>
+        <Reference Include="UnityEngine.ImageConversionModule">
+            <HintPath>$(GorillaTagDir)/Gorilla Tag_Data/Managed/UnityEngine.ImageConversionModule.dll</HintPath>
             <Private>false</Private>
         </Reference>
 
-        <Reference Include="MonkeLib">
-            <HintPath>$(GorillaTagDir)/BepInEx/plugins/MonkeLib/MonkeLib.dll</HintPath>
+        <Reference Include="Utilla">
+            <HintPath>$(GorillaTagDir)/BepInEx/plugins/Utilla/Utilla.dll</HintPath>
             <Private>false</Private>
         </Reference>
     </ItemGroup>
