@@ -24,6 +24,14 @@ public class TeamInfectionManager : GorillaGameManager
     public override string GameModeName() => GameModeInfo.Guid;
     public override string GameModeNameRoomLabel() => string.Empty;
 
+    public TeamInfectionManager()
+    {
+        slowJumpLimit = 6.5f;
+        slowJumpMultiplier = 1.1f;
+        fastJumpLimit = 8.5f;
+        fastJumpMultiplier = 1.3f;
+    }
+    
     public override void StartPlaying()
     {
         base.StartPlaying();
