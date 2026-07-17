@@ -49,7 +49,7 @@ public static class PluginInfo
 {
     public const string Guid = "xyz.pl2w_chin.hotpotato";
     public const string Name = "Hot Potato";
-    public const string Version = "0.1.0";
+    public const string Version = "1.0.1";
 }
 
 public static class GameModeInfo

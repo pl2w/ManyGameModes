@@ -23,7 +23,7 @@ public static class PluginInfo
 {
     public const string Guid = "xyz.pl2w_chin.teaminfection";
     public const string Name = "Team Infection";
-    public const string Version = "0.1.0";
+    public const string Version = "1.0.1";
 }
 
 public static class GameModeInfo
